@@ -64,9 +64,9 @@ void printf(char *str) {
 ```
 
 ### 链接内核
-现在我们可以通过`gcc` `as`命令分别编译`kernel.c`和`loader.s`, 同时生成`kernel.o`和`loader.o`文件, 我们最终要把两个文件链接生成为可供`bootloader`使用的内核可执行文件, 链接文件如下:
+现在我们可以通过`gcc` `as`命令分别编译`kernel.c`和`loader.s`, 同时生成`kernel.o`和`loader.o`文件, 我们最终要把两个文件链接生成为可供`bootloader`使用的内核可执行文件, 链接文件`linker.ld`如下: (对于LinkerScript规则, 可参考[此地址](http://www.scoberlin.de/content/media/http/informatik/gcc_docs/ld_3.html#SEC5))
 ```nasm
-ENTRY(loader)
+ENTRY(loader)  /* 这里对应为load.s里的loader */
 OUTPUT_FORMAT(elf32-i386)
 OUTPUT_ARCH(i386:i386)
 
