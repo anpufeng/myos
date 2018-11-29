@@ -1,4 +1,4 @@
-##开发运行环境 
+## 开发运行环境 
  
 #### 虚拟机软件VMware
  操作系统版本 `linuxmint-17-cinnamon-64bit` [下载地址](https://linuxmint.com/edition.php?id=158 "linuxmint")
