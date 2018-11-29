@@ -4,7 +4,7 @@ LDPARAMS = -melf_i386
 
 
 objects = obj/loader.o \
-  		  obj/kernel_main.o
+  		  obj/kernel.o
 
 run: mykernel.iso
 	(killall VirtualBox && sleep 1) || true

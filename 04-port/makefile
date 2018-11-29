@@ -3,7 +3,7 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386
 
 
-objects = obj/kernel_main.o \
+objects = obj/kernel.o \
 		  obj/boot/print.o \
 		  obj/boot/loader.o \
   		  obj/boot/gdt.o \
