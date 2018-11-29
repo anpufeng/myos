@@ -1,3 +1,5 @@
 mykernel.bin
 mykernel.iso
 obj
+*.txt
+cmake-build-debug

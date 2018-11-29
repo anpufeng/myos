@@ -3,8 +3,10 @@ ASPARAMS = --32
 LDPARAMS = -melf_i386
 
 
-objects = obj/loader.o \
-  		  obj/kernel_main.o
+objects = obj/kernel_main.o \
+		  obj/boot/print.o \
+		  obj/boot/loader.o \
+  		  obj/boot/gdt.o \
 
 run: mykernel.iso
 	(killall VirtualBox && sleep 1) || true
@@ -24,7 +26,7 @@ mykernel.bin: linker.ld $(objects)
 mykernel.iso: mykernel.bin
 	mkdir -p iso/boot/grub
 	cp mykernel.bin iso/boot/mykernel.bin
-	echo 'set timeout=2'                      > iso/boot/grub/grub.cfg
+	echo 'set timeout=0'                      > iso/boot/grub/grub.cfg
 	echo 'set default=0'                     >> iso/boot/grub/grub.cfg
 	echo ''                                  >> iso/boot/grub/grub.cfg
 	echo 'menuentry "My Operating System" {' >> iso/boot/grub/grub.cfg
