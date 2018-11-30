@@ -26,7 +26,7 @@ typedef struct gdt_entry_t {
 	uint8_t 	base_middle;
 	uint8_t 	access;
 	uint8_t 	limit_high;
-	uint8_t     flags;
+	uint8_t     	flags;
 	uint8_t 	base_high;
 } __attribute__((packed)) gdt_entry_t;
 
