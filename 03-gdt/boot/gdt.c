@@ -3,9 +3,8 @@
 
 gdt_t g_gdt;
 
-void segment_descriptor_init(segment_descriptor_t *sd, uint32_t base, uint32_t limit, uint8_t type) {
-	uint8_t* target = (uint8_t*)sd;
-
+void gdt_entry_init(gdt_entry_t *entry, uint32_t base, uint32_t limit, uint8_t type) {
+	uint8_t* target = (uint8_t*)entry;
     if (limit <= 65536) {
         // 16-bit address space
         target[6] = 0x40;
@@ -44,8 +43,8 @@ void segment_descriptor_init(segment_descriptor_t *sd, uint32_t base, uint32_t l
     target[5] = type;
 }
 
-uint32_t segment_descriptor_base(segment_descriptor_t *sd) {
-	uint8_t *target = (uint8_t*)sd;
+uint32_t gdt_entry_base(gdt_entry_t *entry) {
+	uint8_t *target = (uint8_t*)entry;
 
     uint32_t result = target[7];
     result = (result << 8) + target[4];
@@ -55,8 +54,8 @@ uint32_t segment_descriptor_base(segment_descriptor_t *sd) {
     return result;
 }
 
-uint32_t segment_descriptor_limit(segment_descriptor_t *sd) {
-	uint8_t *target = (uint8_t*)sd;
+uint32_t gdt_entry_limit(gdt_entry_t *entry) {
+	uint8_t *target = (uint8_t*)entry;
 
     uint32_t result = target[6] & 0xF;
     result = (result << 8) + target[1];
@@ -69,16 +68,20 @@ uint32_t segment_descriptor_limit(segment_descriptor_t *sd) {
     return result;
 }
 
-void segment_descriptor_deinit(segment_descriptor_t *sd) {
+void gdt_entry_deinit(gdt_entry_t *entry) {
 	//nothing to do
 }
 
+/*
+                           Pr  Priv  S   Ex  DC   RW   Ac
+     0x9A == 1001 1010  == 1   00    1   1   0    1    0
+     0x92 == 1001 0010  == 1   00    1   0   0    1    0
+   */
 
 void gdt_init() {
-    segment_descriptor_init(&g_gdt.null_segment_selector, 0, 0, 0);
-    segment_descriptor_init(&g_gdt.unused_segment_selector, 0, 0, 0);
-    segment_descriptor_init(&g_gdt.code_segment_selector, 0, 64 * 1024 * 1024, 0x9A);
-    segment_descriptor_init(&g_gdt.data_segment_selector, 0, 64 * 1024 * 1024, 0x92);
+    gdt_entry_init(&g_gdt.null_segment_selector, 0, 0, 0);
+    gdt_entry_init(&g_gdt.code_segment_selector, 0, 64 * 1024 * 1024, 0x9A);
+    gdt_entry_init(&g_gdt.data_segment_selector, 0, 64 * 1024 * 1024, 0x92);
 
 	uint32_t i[2];
     i[1] = (uint32_t)&g_gdt;
@@ -97,8 +100,7 @@ uint16_t gdt_data_segment_selector() {
 }
 
 void gdt_deinit() {
-    segment_descriptor_deinit(&g_gdt.null_segment_selector);
-    segment_descriptor_deinit(&g_gdt.unused_segment_selector);
-    segment_descriptor_deinit(&g_gdt.code_segment_selector);
-    segment_descriptor_deinit(&g_gdt.data_segment_selector);
+    gdt_entry_deinit(&g_gdt.null_segment_selector);
+    gdt_entry_deinit(&g_gdt.code_segment_selector);
+    gdt_entry_deinit(&g_gdt.data_segment_selector);
 }
