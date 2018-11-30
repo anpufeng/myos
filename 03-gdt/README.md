@@ -15,30 +15,10 @@ GDT中的每个描述符中有8个字节组成
 - Base 0:15+16:23+24:31 -> 32bit, 段基地址 
 
 ![](https://wiki.osdev.org/images/6/68/Gdt_bits_fixed.png)
-- Pr -> Present bit. 有效的`selector`必须为1
-- Privl -> Privilege, 2 bits. 所描述段的特权级，用于特权检查, 0最高(内核)3最低(用户).
-- S -> Descriptor type, `code segments`和`data segments`设为1, `system segments` 为0
-- Ex->  Executable bit 如果`segment`可执行须置为1 例如` code selector`, 否则置0例如`data selector`
 
-The bit fields are:
+这块各个bit位所表述的意义参见 https://wiki.osdev.org/GDT
 
-- Pr: Present bit. This must be 1 for all valid selectors.
--  Privl: Privilege, 2 bits. Contains the ring level, 0 = highest (kernel), 3 = lowest (user applications).
--  S: Descriptor type. This bit should be set for code or data segments and should be cleared for system segments (eg. a Task State Segment)
--  Ex: Executable bit. If 1 code in this segment can be executed, ie. a code selector. If 0 it is a data selector.
--  DC: Direction bit/Conforming bit.
-    - Direction bit for data selectors: Tells the direction. 0 the segment grows up. 1 the segment grows down, ie. the offset has to be greater than the limit.
-    - Conforming bit for code selectors:
-        - If 1 code in this segment can be executed from an equal or lower privilege level. For example, code in ring 3 can far-jump to conforming code in a ring 2 segment. The privl-bits represent the highest privilege level that is allowed to execute the segment. For example, code in ring 0 cannot far-jump to a conforming code segment with privl==0x2, while code in ring 2 and 3 can. Note that the privilege level remains the same, ie. a far-jump form ring 3 to a privl==2-segment remains in ring 3 after the jump.
-        - If 0 code in this segment can only be executed from the ring set in privl.
-- RW: Readable bit/Writable bit.
-Readable bit for code selectors: Whether read access for this segment is allowed. Write access is never allowed for code segments.
-Writable bit for data selectors: Whether write access for this segment is allowed. Read access is always allowed for data segments.
-- Ac: Accessed bit. Just set to 0. The CPU sets this to 1 when the segment is accessed.
-- Gr: Granularity bit. If 0 the limit is in 1 B blocks (byte granularity), if 1 the limit is in 4 KiB blocks (page granularity).
-- Sz: Size bit. If 0 the selector defines 16 bit protected mode. If 1 it defines 32 bit protected mode. You can have both 16 bit and 32 bit selectors at once.
-
-所以我们定义如下描述项结构体
+定义如下描述项结构体
 ```CPP
 typedef struct gdt_entry_t {
 	uint16_t 	limit_low;
@@ -52,18 +32,86 @@ typedef struct gdt_entry_t {
 
 ```
 
-#### GDT内应存储以下几种描述项
+初始化方法如下
+```CPP
+void gdt_entry_init(gdt_entry_t *entry, uint32_t base, uint32_t limit, uint8_t type) {
+	uint8_t* target = (uint8_t*)entry;
+    if (limit <= 65536) {
+        // 16-bit address space
+        target[6] = 0x40;
+    } else {
+        // 32-bit address space
+        // Now we have to squeeze the (32-bit) limit into 2.5 regiters (20-bit).
+        // This is done by discarding the 12 least significant bits, but this
+        // is only legal, if they are all ==1, so they are implicitly still there
+
+        // so if the last bits aren't all 1, we have to set them to 1, but this
+        // would increase the limit (cannot do that, because we might go beyond
+        // the physical limit or get overlap with other segments) so we have to
+        // compensate this by decreasing a higher bit (and might have up to
+        // 4095 wasted bytes behind the used memory)
+		if ((limit & 0xFFF) != 0xFFF) {
+			limit = (limit >> 12)-1;
+        } else {
+        	limit = limit >> 12;
+        }
+
+        target[6] = 0xC0;
+    }
+
+    // Encode the limit
+    target[0] = limit & 0xFF;
+    target[1] = (limit >> 8) & 0xFF;
+    target[6] |= (limit >> 16) & 0xF;
+
+    // Encode the base
+    target[2] = base & 0xFF;
+    target[3] = (base >> 8) & 0xFF;
+    target[4] = (base >> 16) & 0xFF;
+    target[7] = (base >> 24) & 0xFF;
+
+    // Type
+    target[5] = type;
+}
+```
+
+#### GDT内存储以下几种描述项
 ```CPP
 typedef struct gdt_t {
 	gdt_entry_t null_segment_selector;
 	gdt_entry_t code_segment_selector;
 	gdt_entry_t data_segment_selector;
 } gdt_t;
+```
 
+初始化方法哪下
+```CPP
+/*
+                           Pr  Priv  S   Ex  DC   RW   Ac
+     0x9A == 1001 1010  == 1   00    1   1   0    1    0
+     0x92 == 1001 0010  == 1   00    1   0   0    1    0
+   */
+
+void gdt_init() {
+    gdt_entry_init(&g_gdt.null_segment_selector, 0, 0, 0);
+    gdt_entry_init(&g_gdt.code_segment_selector, 0, 64 * 1024 * 1024, 0x9A);
+    gdt_entry_init(&g_gdt.data_segment_selector, 0, 64 * 1024 * 1024, 0x92);
+
+    uint32_t i[2];
+    i[1] = (uint32_t)&g_gdt;
+    i[0] = sizeof(gdt_t) << 16;
+
+    __asm__ volatile("lgdt (%0)": :"p" (((uint8_t *) i)+2));
+     printf("gdt_init\n");
+}
 ```
 
 #### 扩展下printf打印功能
 增加输出换行及输出HEX功能, 详见boot/print.c
+
+#### 运行结果
+我们在`kernel_main`中调用` gdt_init()` 终端运行`make run`后启动系统会看到在终端打印出
+> gdt_init
 
 
 参考文档 
