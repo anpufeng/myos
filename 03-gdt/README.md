@@ -84,7 +84,7 @@ typedef struct gdt_t {
 } gdt_t;
 ```
 
-初始化方法哪下
+初始化方法如下
 ```CPP
 /*
                            Pr  Priv  S   Ex  DC   RW   Ac
@@ -107,7 +107,7 @@ void gdt_init() {
 ```
 
 #### 扩展下printf打印功能
-增加输出换行及输出HEX功能, 详见boot/print.c
+增加输出换行及hex功能, 详见boot/print.c
 
 #### 运行结果
 我们在`kernel_main`中调用` gdt_init()` 终端运行`make run`后启动系统会看到在终端打印出
@@ -115,8 +115,8 @@ void gdt_init() {
 
 
 参考文档 
-https://wiki.osdev.org/GDT_Tutorial
-https://wiki.osdev.org/GDT
+- https://wiki.osdev.org/GDT_Tutorial
+- https://wiki.osdev.org/GDT
 
 
 

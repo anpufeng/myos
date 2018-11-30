@@ -83,7 +83,7 @@ void gdt_init() {
     gdt_entry_init(&g_gdt.code_segment_selector, 0, 64 * 1024 * 1024, 0x9A);
     gdt_entry_init(&g_gdt.data_segment_selector, 0, 64 * 1024 * 1024, 0x92);
 
-	uint32_t i[2];
+    uint32_t i[2];
     i[1] = (uint32_t)&g_gdt;
     i[0] = sizeof(gdt_t) << 16;
 
