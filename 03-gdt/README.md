@@ -111,7 +111,8 @@ void gdt_init() {
 
 #### 运行结果
 我们在`kernel_main`中调用` gdt_init()` 终端运行`make run`后启动系统会看到在终端打印出
-> gdt_init
+
+<img src="https://github.com/anpufeng/myos/blob/master/image/03-gdt.jpg" width="600" height="500">
 
 
 参考文档 
