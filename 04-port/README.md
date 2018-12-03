@@ -20,7 +20,9 @@ void port_write8_slow(uint16_t port, uint8_t data) {
 ```
 
 `inb %1,%0` 意思是将`%1`到`%0`, 即`port`的数据至`result`
+
 `outb`同理是将`data`写至`port`
+
 这里有个特殊地方`jmp 1f\n1: jmp 1f\n1:`是指`IO_WAIT`, 强制CPU等待I/O操作完成.
 
 #### 16位32位
