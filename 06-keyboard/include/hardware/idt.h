@@ -4,6 +4,14 @@
 #include <types.h>
 #include <boot/gdt.h>
 
+typedef struct interrupt_handler_t interrupt_handler_t;
+
+struct interrupt_handler_t {
+	uint8_t     interrutpt_number;
+	void *      interrupt_manager;
+    uint32_t    (*cb_handler)(uint32_t, interrupt_handler_t *);
+};
+
 //refer: https://wiki.osdev.org/Descriptor#Interrupt_Gate_Descriptor https://wiki.osdev.org/IDT#Structure_IA-32
 
 typedef struct idt_descr_t {
@@ -20,6 +28,7 @@ typedef struct idt_pointer_t {
 } __attribute__((packed)) idt_pointer_t;
 
 typedef struct idt_t {
+	interrupt_handler_t *handlers[256];
 	idt_descr_t         idts[256];		//interrupt descriptor table
 	uint16_t			hardware_interrupt_offset;
 	uint16_t			master_command_port;
@@ -32,6 +41,7 @@ typedef struct idt_t {
 void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt);
 void idt_active();
 void idt_deactive();
+void idt_register_handler(interrupt_handler_t *handler);
 uint32_t idt_handle(uint8_t interrupt, uint32_t esp);
 void idt_deinit();
 

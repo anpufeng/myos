@@ -2,6 +2,7 @@
 #include <boot/gdt.h>
 #include <boot/print.h>
 #include <hardware/idt.h>
+#include <hardware/keyboard.h>
 
 typedef void (*constructor)();
 constructor start_ctors;
@@ -19,6 +20,7 @@ void kernel_main(void) {
 
     gdt_init();
     idt_init(0x20, &g_gdt);
+    keyboard_init();
     idt_active();
 
     while (1);

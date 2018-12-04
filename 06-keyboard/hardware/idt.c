@@ -82,8 +82,10 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
 	uint32_t code_segment =  gdt_code_segment_selector(gdt);
     for (uint8_t i = 255; i > 0; --i) {
         __set_idt_entry(i, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
+        g_idt.handlers[i] = 0;
     }
     __set_idt_entry(0, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
+    g_idt.handlers[0] = 0;
     uint16_t offset = g_idt.hardware_interrupt_offset;
 
 #define SET_IDT_ENTRY(interrupt) \
@@ -91,26 +93,26 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
 #define SET_IDT_OFFSET_ENTRY(interrupt) \
     __set_idt_entry(offset + interrupt, code_segment, &irq##interrupt, 0, IDT_INTERRUPT_GATE);
 
-//    SET_IDT_ENTRY(0x00);
-//    SET_IDT_ENTRY(0x01);
-//    SET_IDT_ENTRY(0x02);
-//    SET_IDT_ENTRY(0x03);
-//    SET_IDT_ENTRY(0x04);
-//    SET_IDT_ENTRY(0x05);
-//    SET_IDT_ENTRY(0x06);
-//    SET_IDT_ENTRY(0x07);
-//    SET_IDT_ENTRY(0x08);
-//    SET_IDT_ENTRY(0x09);
-//    SET_IDT_ENTRY(0x0A);
-//    SET_IDT_ENTRY(0x0B);
-//    SET_IDT_ENTRY(0x0C);
-//    SET_IDT_ENTRY(0x0D);
-//    SET_IDT_ENTRY(0x0E);
-//    SET_IDT_ENTRY(0x0F);
-//    SET_IDT_ENTRY(0x10);
-//    SET_IDT_ENTRY(0x11);
-//    SET_IDT_ENTRY(0x12);
-//    SET_IDT_ENTRY(0x13);
+    SET_IDT_ENTRY(0x00);
+    SET_IDT_ENTRY(0x01);
+    SET_IDT_ENTRY(0x02);
+    SET_IDT_ENTRY(0x03);
+    SET_IDT_ENTRY(0x04);
+    SET_IDT_ENTRY(0x05);
+    SET_IDT_ENTRY(0x06);
+    SET_IDT_ENTRY(0x07);
+    SET_IDT_ENTRY(0x08);
+    SET_IDT_ENTRY(0x09);
+    SET_IDT_ENTRY(0x0A);
+    SET_IDT_ENTRY(0x0B);
+    SET_IDT_ENTRY(0x0C);
+    SET_IDT_ENTRY(0x0D);
+    SET_IDT_ENTRY(0x0E);
+    SET_IDT_ENTRY(0x0F);
+    SET_IDT_ENTRY(0x10);
+    SET_IDT_ENTRY(0x11);
+    SET_IDT_ENTRY(0x12);
+    SET_IDT_ENTRY(0x13);
 
     SET_IDT_OFFSET_ENTRY(0x00);
     SET_IDT_OFFSET_ENTRY(0x01);
@@ -172,10 +174,31 @@ void idt_deactive() {
     }
 }
 
+void idt_register_handler(interrupt_handler_t *handler) {
+    if (g_idt.handlers[handler->interrutpt_number] != 0) {
+        printf("handler already exist");
+    }
+//
+    g_idt.handlers[handler->interrutpt_number] = handler;
+}
+
 uint32_t idt_handle(uint8_t interrupt, uint32_t esp) {
-    printf("got interrupt: 0X");
-    printf_hex(interrupt);
-    printf("\n");
+    if(g_idt.handlers[interrupt] != 0) {
+        esp = g_idt.handlers[interrupt]->cb_handler(esp, g_idt.handlers[interrupt]);
+    } else if(interrupt != g_idt.hardware_interrupt_offset) {
+        printf("UNHANDLED INTERRUPT 0x");
+        printf_hex(interrupt);
+    }
+
+    // hardware interrupts must be acknowledged
+    if(g_idt.hardware_interrupt_offset <= interrupt && interrupt < g_idt.hardware_interrupt_offset+16) {
+        port_write8_slow(g_idt.master_command_port, PIC_EOI);
+
+        if(g_idt.hardware_interrupt_offset + 8 <= interrupt) {
+            port_write8_slow(g_idt.slave_command_port, PIC_EOI);
+        }
+    }
+
     return esp;
 }
 

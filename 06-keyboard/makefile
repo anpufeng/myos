@@ -9,7 +9,8 @@ objects = obj/kernel.o \
   		  obj/boot/gdt.o \
   		  obj/hardware/port.o \
   		  obj/hardware/idt.o \
-  		  obj/hardware/idtstubs.o
+  		  obj/hardware/idtstubs.o \
+  		  obj/hardware/keyboard.o
 
 run: mykernel.iso
 	(killall VirtualBox && sleep 1) || true
