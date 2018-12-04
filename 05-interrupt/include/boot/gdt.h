@@ -5,7 +5,7 @@
 
 //https://wiki.osdev.org/GDT_Tutorial
 
-typedef struct segment_descriptor_t {
+typedef struct gdt_entry_t {
 	uint16_t 	limit_lo;
 	uint16_t 	base_lo;
 	uint8_t 	base_hi;

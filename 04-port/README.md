@@ -48,7 +48,11 @@ void port_write32(uint16_t port, uint32_t data) {
 	__asm__ volatile("outl %0, %1" : : "a"(data), "Nd" (port));
 }
 ```
+
 本节的操作主要是为后续其它章节服务, 比如下一节中断的实现
+
+参考文档 https://wiki.osdev.org/Inline_Assembly/Examples#I.2FO_access
+
 
 
 

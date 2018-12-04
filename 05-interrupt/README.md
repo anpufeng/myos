@@ -1,65 +1,37 @@
-#include <hardware/idt.h>
-#include <hardware/port.h>
-#include <boot/print.h>
+## 加载IDT(Interrupt Descriptor Table)
 
-#define IDT_INTERRUPT_GATE	0xE
-#define IDT_DESC_PRESENT	0x80
+#### IDT概述
 
-#define PIC1		        0x20		/* IO base address for master PIC */
-#define PIC2		        0xA0		/* IO base address for slave PIC */
-#define PIC1_COMMAND	    PIC1
-#define PIC1_DATA	        (PIC1+1)
-#define PIC2_COMMAND	    PIC2
-#define PIC2_DATA	        (PIC2+1)
-#define PIC_EOI		        0x20		/* End-of-interrupt command code */
+`IDT`是一个保护模式下的中断描述符表, 实模式下与之对应的为Interrupt Vector Table([`IVT`](https://wiki.osdev.org/IVT)). `IDT`用来告诉CPU [Interrupt Service Routines(ISR)](https://wiki.osdev.org/Interrupt_Service_Routines) 的位置, 和之前讲的[`GDT`](https://github.com/anpufeng/myos/tree/master/03-gdt)有类似之处, `IDT`的位置(地址和大小)保存在寄存器`IDTR`, 加载指令为`LIDT`, 当有中断发生时, CPU会根据中断号查看`IDT`表(一共有256个中断, 所以IDT表是一个包含有256个元素的数组), 找到并执行需要调用的方法.
 
+#### IDT结构
+ `IDT`内每个元素称之为`GATE`, 结构如下 
+```CPP
+typedef struct idt_descr_t {
+	uint16_t    offset_1;   // offset bits 0..15
+	uint16_t    selector;   // a code segment selector in GDT or LDT
+	uint8_t     zero;       // unused, set to 0
+	uint8_t     type_attr;  // type and attributes, see below
+	uint16_t    offset_2;   // offset bits 16..31
+} __attribute__((packed)) idt_descr_t;
+```
 
+定义`IDT`为如下结构体
+```CPP
+typedef struct idt_t {
+	idt_descr_t     idts[256];		//interrupt descriptor table
+	uint16_t        hardware_interrupt_offset;
+	uint16_t        master_command_port;
+	uint16_t        master_data_port;
+	uint16_t        slave_command_port;
+	uint16_t        slave_data_port;
+	bool            activated;
+} idt_t;
+```
 
-idt_t g_idt;
+初始化方法如下
 
-//in assembly
-static void interrupt_ignore();
-static void irq0x00();
-static void irq0x01();
-static void irq0x02();
-static void irq0x03();
-static void irq0x04();
-static void irq0x05();
-static void irq0x06();
-static void irq0x07();
-static void irq0x08();
-static void irq0x09();
-static void irq0x0A();
-static void irq0x0B();
-static void irq0x0C();
-static void irq0x0D();
-static void irq0x0E();
-static void irq0x0F();
-static void irq0x31();
-
-static void irq0x80();
-
-static void handle_exception0x00();
-static void handle_exception0x01();
-static void handle_exception0x02();
-static void handle_exception0x03();
-static void handle_exception0x04();
-static void handle_exception0x05();
-static void handle_exception0x06();
-static void handle_exception0x07();
-static void handle_exception0x08();
-static void handle_exception0x09();
-static void handle_exception0x0A();
-static void handle_exception0x0B();
-static void handle_exception0x0C();
-static void handle_exception0x0D();
-static void handle_exception0x0E();
-static void handle_exception0x0F();
-static void handle_exception0x10();
-static void handle_exception0x11();
-static void handle_exception0x12();
-static void handle_exception0x13();
-
+```CPP
 static void __set_idt_entry(uint8_t interrupt, uint16_t code_segment, void (*handler)(), uint8_t level, uint8_t type) {
     // address of pointer to code segment (relative to global descriptor table)
     // and address of the handler (relative to segment)
@@ -154,31 +126,29 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
     __asm__ volatile("lidt %0" : : "m" (idt_pointer));
     printf("idt_init\n");
 }
+```
 
-void idt_active() {
-    if (g_idt.activated) {
-        idt_deactive();
-    }
-    g_idt.activated = true;
-    __asm__("sti");
-    printf("idt_active\n");
-}
 
-void idt_deactive() {
-    if (g_idt.activated) {
-        g_idt.activated = false;
-        __asm__("cli");
-        printf("idt_deactive\n");
-    }
-}
+ 
+声明了一些需要处理的中断函数, 并初始化在对应的IDT索引内, 
+我们先初始化了`PIC`的`Master`和`Slave`的端口号, 
+实模式下
 
-uint32_t idt_handle(uint8_t interrupt, uint32_t esp) {
-    printf("got interrupt: 0X");
-    printf_hex(interrupt);
-    printf("\n");
-    return esp;
-}
+    | Chip        | Interrupt numbers (IRQ) | Vector offset |  Interrupt Numbers|
+    | ------------| ----------------------- |---------------|------------------ |
+    | Master PIC  | 0 to 7                  | 0x08          | 0x08 to 0x0F      |
+    | Slave PIC   | 8 to 15                 | 0x70          | 0x70 to 0x77      |
+我们这里使用的是保护模式下的, 因为0到0x1F中断已经被INTERL保留使用了, 所以这里使用以0X20为offset(IRQs 0..0xF -> INT 0x20..0x2F), 因为要整除8所以`master offset` 0x20 `slave offset` 0x28
+同时我们需要初始化`PIC`, 至于为何设置这些数据及其意义所在, 参见https://wiki.osdev.org/8259_PIC#Initialisation
+`idt.c`只是声明了中断处理函数, 具体函数的定义在`idtstubs.s`内
+主要中断逻辑就是先保存当前一些寄存器状态, 然后调用了在`idt.c`内的中断处理函数, 后面恢复寄存器状态.
 
-void idt_deinit() {
-    idt_deactive();
-}
+
+#### 运行结果
+我们收到了中断信号, 至于为何只收到一次, 是因为我们还没有回复`EOI`end of interrupt, 这个留待后续处理
+<img src="https://github.com/anpufeng/myos/blob/master/image/05-idt.jpg" width="600" height="500">
+
+
+
+
+

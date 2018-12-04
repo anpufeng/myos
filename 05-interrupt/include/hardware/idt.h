@@ -4,21 +4,15 @@
 #include <types.h>
 #include <boot/gdt.h>
 
+//refer: https://wiki.osdev.org/Descriptor#Interrupt_Gate_Descriptor https://wiki.osdev.org/IDT#Structure_IA-32
 
-typedef struct interrupt_handler_t {
-	uint8_t 	interrutpt_number;
-	void *		interrupt_manager;
-} interrupt_handler_t;
-
-//https://wiki.osdev.org/Descriptor https://wiki.osdev.org/IDT#Structure_IA-32
-//todo rename variable name
-typedef struct gate_descriptor_t {
-	uint16_t	handler_address_low_bits;
-	uint16_t 	gdt_code_segment_selector;
-	uint8_t 	reserved;
-	uint8_t 	access;
-  	uint16_t 	handler_address_high_bits;
-} __attribute__((packed)) gate_descriptor_t;
+typedef struct idt_descr_t {
+	uint16_t    offset_1;   // offset bits 0..15
+	uint16_t    selector;   // a code segment selector in GDT or LDT
+	uint8_t     zero;       // unused, set to 0
+	uint8_t     type_attr;  // type and attributes, see below
+	uint16_t    offset_2;   // offset bits 16..31
+} __attribute__((packed)) idt_descr_t;
 
 typedef struct idt_pointer_t {
 	uint16_t 	size;
@@ -26,15 +20,13 @@ typedef struct idt_pointer_t {
 } __attribute__((packed)) idt_pointer_t;
 
 typedef struct idt_t {
-	interrupt_handler_t *handlers[256];
-	gate_descriptor_t	idt[256];		//interrupt descriptor table
+	idt_descr_t         idts[256];		//interrupt descriptor table
 	uint16_t			hardware_interrupt_offset;
 	uint16_t			master_command_port;
 	uint16_t			master_data_port;
 	uint16_t			slave_command_port;
 	uint16_t			slave_data_port;
 	bool				activated;
-
 } idt_t;
 
 void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt);

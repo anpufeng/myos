@@ -15,9 +15,9 @@ handle_exception\num\():
 .endm
 
 
-.macro handle_interrupt_request_macro num
-.global handle_interrupt_request\num\()
-handle_interrupt_request\num\():
+.macro irq_macro num
+.global irq\num\()
+irq\num\():
     movb $\num + IRQ_BASE, (interruptnumber)
     pushl $0
     jmp int_bottom
@@ -45,25 +45,25 @@ handle_exception_macro 0x11
 handle_exception_macro 0x12
 handle_exception_macro 0x13
 
-handle_interrupt_request_macro 0x00
-handle_interrupt_request_macro 0x01
-handle_interrupt_request_macro 0x02
-handle_interrupt_request_macro 0x03
-handle_interrupt_request_macro 0x04
-handle_interrupt_request_macro 0x05
-handle_interrupt_request_macro 0x06
-handle_interrupt_request_macro 0x07
-handle_interrupt_request_macro 0x08
-handle_interrupt_request_macro 0x09
-handle_interrupt_request_macro 0x0A
-handle_interrupt_request_macro 0x0B
-handle_interrupt_request_macro 0x0C
-handle_interrupt_request_macro 0x0D
-handle_interrupt_request_macro 0x0E
-handle_interrupt_request_macro 0x0F
-handle_interrupt_request_macro 0x31
+irq_macro 0x00
+irq_macro 0x01
+irq_macro 0x02
+irq_macro 0x03
+irq_macro 0x04
+irq_macro 0x05
+irq_macro 0x06
+irq_macro 0x07
+irq_macro 0x08
+irq_macro 0x09
+irq_macro 0x0A
+irq_macro 0x0B
+irq_macro 0x0C
+irq_macro 0x0D
+irq_macro 0x0E
+irq_macro 0x0F
+irq_macro 0x31
 
-handle_interrupt_request_macro 0x80
+irq_macro 0x80
 
 
 int_bottom:
@@ -90,7 +90,7 @@ int_bottom:
     #mov %eax, %eds
     #mov %eax, %ees
 
-    # call C++ Handler
+    # call C Handler
     pushl %esp
     push (interruptnumber)
     call idt_handle
@@ -111,7 +111,7 @@ int_bottom:
     #pop %es
     #pop %ds
     #popa
-    
+
     add $4, %esp
 
 .global interrupt_ignore
