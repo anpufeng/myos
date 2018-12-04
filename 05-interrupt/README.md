@@ -131,14 +131,17 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
 
  
 声明了一些需要处理的中断函数, 并初始化在对应的IDT索引内, 
-我们先初始化了`PIC`的`Master`和`Slave`的端口号, 
-实模式下
+我们先初始化了`PIC`的`Master`和`Slave`对应的端口号
 
-    | Chip        | Interrupt numbers (IRQ) | Vector offset |  Interrupt Numbers|
-    | ------------| ----------------------- |---------------|------------------ |
-    | Master PIC  | 0 to 7                  | 0x08          | 0x08 to 0x0F      |
-    | Slave PIC   | 8 to 15                 | 0x70          | 0x70 to 0x77      |
-我们这里使用的是保护模式下的, 因为0到0x1F中断已经被INTERL保留使用了, 所以这里使用以0X20为offset(IRQs 0..0xF -> INT 0x20..0x2F), 因为要整除8所以`master offset` 0x20 `slave offset` 0x28
+###### 实模式下的中断信号
+
+| Chip        | Interrupt numbers (IRQ) | Vector offset |  Interrupt Numbers|
+| ------------| ----------------------- |---------------|------------------ |
+| Master PIC  | 0 to 7                  | 0x08          | 0x08 to 0x0F      |
+| Slave PIC   | 8 to 15                 | 0x70          | 0x70 to 0x77      |
+
+###### 保护模式
+我们这里使用的是保护模式, 因为0到0x1F中断已经被INTERL保留使用了, 所以这里以0x20为offset(IRQs 0..0xF -> INT 0x20..0x2F), 因为要整除8所以`master offset` 0x20 `slave offset` 0x28
 同时我们需要初始化`PIC`, 至于为何设置这些数据及其意义所在, 参见https://wiki.osdev.org/8259_PIC#Initialisation
 `idt.c`只是声明了中断处理函数, 具体函数的定义在`idtstubs.s`内
 主要中断逻辑就是先保存当前一些寄存器状态, 然后调用了在`idt.c`内的中断处理函数, 后面恢复寄存器状态.
