@@ -3,6 +3,7 @@
 #include <boot/print.h>
 #include <hardware/idt.h>
 #include <hardware/keyboard.h>
+#include <hardware/mouse.h>
 
 typedef void (*constructor)();
 constructor start_ctors;
@@ -21,6 +22,7 @@ void kernel_main(void) {
     gdt_init();
     idt_init(0x20, &g_gdt);
     keyboard_init(&g_idt);
+    mouse_init(&g_idt);
     idt_active();
 
     while (1);
