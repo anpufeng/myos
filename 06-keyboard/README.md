@@ -131,7 +131,7 @@ void keyboard_init() {
 
 ```
 
-最后在`kernel_main`中调用初始化函数`keyboard_init`
+最后在`kernel_main`中调用初始化函数`keyboard_init`, 运行后使用键盘输入一些字符会在屏幕上显示出来
 
 #### 运行结果
 
