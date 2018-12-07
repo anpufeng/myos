@@ -4,8 +4,10 @@
 #include <hardware/idt.h>
 
 
-#define KEYBOARD_COMMAND_PORT 0x64
-#define KEYBOARD_DATA_PORT   0X60
+#define KEYBOARD_COMMAND_PORT   0x64
+#define KEYBOARD_DATA_PORT      0X60
+
+static interrupt_handler_t g_keyboard_handler;
 
 static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *arg) {
     uint8_t key = port_read8(KEYBOARD_DATA_PORT);
@@ -66,8 +68,6 @@ static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *a
     }
     return esp;
 }
-
-static interrupt_handler_t g_keyboard_handler;
 
 void keyboard_init() {
     g_keyboard_handler.interrutpt_number = 0x21;

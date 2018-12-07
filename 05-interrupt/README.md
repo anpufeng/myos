@@ -19,10 +19,9 @@ typedef struct idt_descr_t {
 定义`IDT`为如下结构体
 ```CPP
 typedef struct idt_t {
-	interrupt_handler_t *handlers[256];
 	idt_descr_t         idts[256];		//interrupt descriptor table
-	uint16_t			hardware_interrupt_offset;
-	bool				activated;
+	uint16_t            hardware_interrupt_offset;
+	bool                activated;
 } idt_t;
 ```
 
@@ -46,10 +45,8 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
 	uint32_t code_segment =  gdt_code_segment_selector(gdt);
     for (uint8_t i = 255; i > 0; --i) {
         __set_idt_entry(i, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
-        g_idt.handlers[i] = 0;
     }
     __set_idt_entry(0, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
-    g_idt.handlers[0] = 0;
     uint16_t offset = g_idt.hardware_interrupt_offset;
 
 #define SET_ISR(interrupt) \

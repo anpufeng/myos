@@ -77,10 +77,8 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
 	uint32_t code_segment =  gdt_code_segment_selector(gdt);
     for (uint8_t i = 255; i > 0; --i) {
         __set_idt_entry(i, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
-        g_idt.handlers[i] = 0;
     }
     __set_idt_entry(0, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
-    g_idt.handlers[0] = 0;
     uint16_t offset = g_idt.hardware_interrupt_offset;
 
 #define SET_ISR(interrupt) \
@@ -167,14 +165,6 @@ void idt_deactive() {
         __asm__("cli");
         printf("idt_deactive\n");
     }
-}
-
-void idt_register_handler(interrupt_handler_t *handler) {
-    if (g_idt.handlers[handler->interrutpt_number] != 0) {
-        printf("handler already exist");
-    }
-
-    g_idt.handlers[handler->interrutpt_number] = handler;
 }
 
 uint32_t idt_handle(uint8_t interrupt, uint32_t esp) {

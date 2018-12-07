@@ -8,7 +8,7 @@ typedef struct interrupt_handler_t interrupt_handler_t;
 
 struct interrupt_handler_t {
 	uint8_t     interrutpt_number;
-    uint32_t    (*cb_handler)(uint32_t, interrupt_handler_t *);
+	uint32_t    (*cb_handler)(uint32_t, interrupt_handler_t *);
 };
 
 //refer: https://wiki.osdev.org/Descriptor#Interrupt_Gate_Descriptor https://wiki.osdev.org/IDT#Structure_IA-32

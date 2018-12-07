@@ -174,7 +174,7 @@ void idt_register_handler(interrupt_handler_t *handler) {
     if (g_idt.handlers[handler->interrutpt_number] != 0) {
         printf("handler already exist");
     }
-//
+
     g_idt.handlers[handler->interrutpt_number] = handler;
 }
 

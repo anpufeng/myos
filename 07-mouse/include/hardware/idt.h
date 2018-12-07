@@ -7,7 +7,7 @@
 typedef struct interrupt_handler_t interrupt_handler_t;
 
 struct interrupt_handler_t {
-	uint8_t     interrutpt_number;
+    uint8_t     interrutpt_number;
     uint32_t    (*cb_handler)(uint32_t, interrupt_handler_t *);
 };
 

@@ -4,8 +4,10 @@
 #include <hardware/idt.h>
 
 
-#define KEYBOARD_COMMAND_PORT 0x64
-#define KEYBOARD_DATA_PORT   0X60
+#define KEYBOARD_COMMAND_PORT   0x64
+#define KEYBOARD_DATA_PORT      0X60
+
+static interrupt_handler_t g_keyboard_handler;
 
 static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *arg) {
     uint8_t key = port_read8(KEYBOARD_DATA_PORT);
@@ -27,7 +29,7 @@ static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *a
             case 0x12: printf("e"); break;
             case 0x13: printf("r"); break;
             case 0x14: printf("t"); break;
-            case 0x15: printf("z"); break;
+            case 0x15: printf("y"); break;
             case 0x16: printf("u"); break;
             case 0x17: printf("i"); break;
             case 0x18: printf("o"); break;
@@ -43,7 +45,7 @@ static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *a
             case 0x25: printf("k"); break;
             case 0x26: printf("l"); break;
 
-            case 0x2C: printf("y"); break;
+            case 0x2C: printf("z"); break;
             case 0x2D: printf("x"); break;
             case 0x2E: printf("c"); break;
             case 0x2F: printf("v"); break;
@@ -66,8 +68,6 @@ static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *a
     }
     return esp;
 }
-
-static interrupt_handler_t g_keyboard_handler;
 
 void keyboard_init() {
     g_keyboard_handler.interrutpt_number = 0x21;
