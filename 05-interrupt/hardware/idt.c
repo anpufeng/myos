@@ -173,26 +173,13 @@ void idt_register_handler(interrupt_handler_t *handler) {
     if (g_idt.handlers[handler->interrutpt_number] != 0) {
         printf("handler already exist");
     }
-//
+
     g_idt.handlers[handler->interrutpt_number] = handler;
 }
 
 uint32_t idt_handle(uint8_t interrupt, uint32_t esp) {
-    if(g_idt.handlers[interrupt] != 0) {
-        esp = g_idt.handlers[interrupt]->cb_handler(esp, g_idt.handlers[interrupt]);
-    } else if(interrupt != g_idt.hardware_interrupt_offset) {
-        printf("UNHANDLED INTERRUPT 0x");
-        printf_hex(interrupt);
-    }
-
-    // hardware interrupts must be acknowledged
-    if(g_idt.hardware_interrupt_offset <= interrupt && interrupt < g_idt.hardware_interrupt_offset+16) {
-        port_write8_slow(PIC1_COMMAND, PIC_EOI);
-
-        if(g_idt.hardware_interrupt_offset + 8 <= interrupt) {
-            port_write8_slow(PIC2_COMMAND, PIC_EOI);
-        }
-    }
+    printf("got interrupt: 0X");
+    printf_hex(interrupt);
 
     return esp;
 }
