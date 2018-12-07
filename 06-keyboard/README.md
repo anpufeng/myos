@@ -1,7 +1,7 @@
 ## 显示键盘输出
 
 #### 完善interrupt处理
-上一节已经获取到了`interrupt`信号, 没做处理直接返回了. 定义一个用于处理中断的结构体, 里面包括要处理的中断号及对应的回调处理函数
+上一节已经获取到了`interrupt`信号, 没做处理直接返回了. 新定义一个用于处理中断的结构体, 里面包括要处理的中断号及对应的回调处理函数
 ```CPP
 typedef struct interrupt_handler_t interrupt_handler_t;
 
@@ -135,7 +135,7 @@ void keyboard_init() {
 
 #### 运行结果
 
-<img src="https://github.com/anpufeng/myos/blob/master/image/06-keyboard.gif" width="600" height="500">
+<img src="https://github.com/anpufeng/myos/blob/master/image/06-keyboard.gif" width="500" height="280">
 
 
 
