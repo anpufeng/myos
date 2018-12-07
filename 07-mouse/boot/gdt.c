@@ -68,16 +68,11 @@ uint32_t gdt_entry_limit(gdt_entry_t *entry) {
     return result;
 }
 
-void gdt_entry_deinit(gdt_entry_t *entry) {
-	//nothing to do
-}
-
 /*
                            Pr  Priv  S   Ex  DC   RW   Ac
      0x9A == 1001 1010  == 1   00    1   1   0    1    0
      0x92 == 1001 0010  == 1   00    1   0   0    1    0
    */
-
 void gdt_init() {
     gdt_entry_init(&g_gdt.null_segment_selector, 0, 0, 0);
     gdt_entry_init(&g_gdt.code_segment_selector, 0, 64 * 1024 * 1024, 0x9A);
@@ -97,10 +92,4 @@ uint16_t gdt_code_segment_selector() {
 
 uint16_t gdt_data_segment_selector() {
 	return (uint8_t*)&g_gdt.data_segment_selector - (uint8_t*)&g_gdt;
-}
-
-void gdt_deinit() {
-    gdt_entry_deinit(&g_gdt.null_segment_selector);
-    gdt_entry_deinit(&g_gdt.code_segment_selector);
-    gdt_entry_deinit(&g_gdt.data_segment_selector);
 }

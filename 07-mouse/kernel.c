@@ -14,20 +14,14 @@ void call_constructors()
         (*i)();
 }
 
-//http://www.jamesmolloy.co.uk/tutorial_html/
-
 void kernel_main(void) {
     printf("Hello World! --- this is my os\n");
 
     gdt_init();
     idt_init(0x20, &g_gdt);
-    keyboard_init(&g_idt);
-    mouse_init(&g_idt);
+    keyboard_init();
+    mouse_init();
     idt_active();
 
     while (1);
-
-    idt_deinit();
-    gdt_deinit();
-
 }

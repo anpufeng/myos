@@ -58,51 +58,51 @@ void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
     __set_idt_entry(0, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
     uint16_t offset = g_idt.hardware_interrupt_offset;
 
-#define SET_IDT_ENTRY(interrupt) \
+#define SET_ISR(interrupt) \
     __set_idt_entry(interrupt, code_segment, &handle_exception##interrupt, 0, IDT_INTERRUPT_GATE);
-#define SET_IDT_OFFSET_ENTRY(interrupt) \
+#define SET_IRQ(interrupt) \
     __set_idt_entry(offset + interrupt, code_segment, &irq##interrupt, 0, IDT_INTERRUPT_GATE);
 
-//    SET_IDT_ENTRY(0x00);
-//    SET_IDT_ENTRY(0x01);
-//    SET_IDT_ENTRY(0x02);
-//    SET_IDT_ENTRY(0x03);
-//    SET_IDT_ENTRY(0x04);
-//    SET_IDT_ENTRY(0x05);
-//    SET_IDT_ENTRY(0x06);
-//    SET_IDT_ENTRY(0x07);
-//    SET_IDT_ENTRY(0x08);
-//    SET_IDT_ENTRY(0x09);
-//    SET_IDT_ENTRY(0x0A);
-//    SET_IDT_ENTRY(0x0B);
-//    SET_IDT_ENTRY(0x0C);
-//    SET_IDT_ENTRY(0x0D);
-//    SET_IDT_ENTRY(0x0E);
-//    SET_IDT_ENTRY(0x0F);
-//    SET_IDT_ENTRY(0x10);
-//    SET_IDT_ENTRY(0x11);
-//    SET_IDT_ENTRY(0x12);
-//    SET_IDT_ENTRY(0x13);
+//    SET_ISR(0x00);
+//    SET_ISR(0x01);
+//    SET_ISR(0x02);
+//    SET_ISR(0x03);
+//    SET_ISR(0x04);
+//    SET_ISR(0x05);
+//    SET_ISR(0x06);
+//    SET_ISR(0x07);
+//    SET_ISR(0x08);
+//    SET_ISR(0x09);
+//    SET_ISR(0x0A);
+//    SET_ISR(0x0B);
+//    SET_ISR(0x0C);
+//    SET_ISR(0x0D);
+//    SET_ISR(0x0E);
+//    SET_ISR(0x0F);
+//    SET_ISR(0x10);
+//    SET_ISR(0x11);
+//    SET_ISR(0x12);
+//    SET_ISR(0x13);
 
-    SET_IDT_OFFSET_ENTRY(0x00);
-    SET_IDT_OFFSET_ENTRY(0x01);
-    SET_IDT_OFFSET_ENTRY(0x02);
-    SET_IDT_OFFSET_ENTRY(0x03);
-    SET_IDT_OFFSET_ENTRY(0x04);
-    SET_IDT_OFFSET_ENTRY(0x05);
-    SET_IDT_OFFSET_ENTRY(0x06);
-    SET_IDT_OFFSET_ENTRY(0x07);
-    SET_IDT_OFFSET_ENTRY(0x08);
-    SET_IDT_OFFSET_ENTRY(0x09);
-    SET_IDT_OFFSET_ENTRY(0x0A);
-    SET_IDT_OFFSET_ENTRY(0x0B);
-    SET_IDT_OFFSET_ENTRY(0x0C);
-    SET_IDT_OFFSET_ENTRY(0x0D);
-    SET_IDT_OFFSET_ENTRY(0x0E);
-    SET_IDT_OFFSET_ENTRY(0x0F);
+    SET_IRQ(0x00);
+    SET_IRQ(0x01);
+    SET_IRQ(0x02);
+    SET_IRQ(0x03);
+    SET_IRQ(0x04);
+    SET_IRQ(0x05);
+    SET_IRQ(0x06);
+    SET_IRQ(0x07);
+    SET_IRQ(0x08);
+    SET_IRQ(0x09);
+    SET_IRQ(0x0A);
+    SET_IRQ(0x0B);
+    SET_IRQ(0x0C);
+    SET_IRQ(0x0D);
+    SET_IRQ(0x0E);
+    SET_IRQ(0x0F);
     __set_idt_entry(0x80, code_segment, &irq0x80, 0, IDT_INTERRUPT_GATE);
-#undef SET_IDT_ENTRY
-#undef SET_IDT_OFFSET_ENTRY
+#undef SET_ISR
+#undef SET_IRQ
 
     /* remapping the PIC */
     port_write8_slow(g_idt.master_command_port, 0x11);

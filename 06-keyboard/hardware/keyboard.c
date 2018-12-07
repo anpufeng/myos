@@ -69,10 +69,9 @@ static uint32_t __keyboard_handler_callback(uint32_t esp, interrupt_handler_t *a
 
 static interrupt_handler_t g_keyboard_handler;
 
-void keyboard_init(idt_t *idt) {
+void keyboard_init() {
     g_keyboard_handler.interrutpt_number = 0x21;
     g_keyboard_handler.cb_handler = __keyboard_handler_callback;
-    g_keyboard_handler.interrupt_manager = idt;
     idt_register_handler(&g_keyboard_handler);
     while (port_read8(KEYBOARD_COMMAND_PORT) & 0x1) {
         port_read8(KEYBOARD_DATA_PORT);

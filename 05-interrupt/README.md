@@ -19,13 +19,10 @@ typedef struct idt_descr_t {
 定义`IDT`为如下结构体
 ```CPP
 typedef struct idt_t {
-	idt_descr_t     idts[256];		//interrupt descriptor table
-	uint16_t        hardware_interrupt_offset;
-	uint16_t        master_command_port;
-	uint16_t        master_data_port;
-	uint16_t        slave_command_port;
-	uint16_t        slave_data_port;
-	bool            activated;
+	interrupt_handler_t *handlers[256];
+	idt_descr_t         idts[256];		//interrupt descriptor table
+	uint16_t			hardware_interrupt_offset;
+	bool				activated;
 } idt_t;
 ```
 
@@ -43,85 +40,82 @@ static void __set_idt_entry(uint8_t interrupt, uint16_t code_segment, void (*han
     g_idt.idts[interrupt].zero = 0;
 }
 
-
 void idt_init(uint16_t hardware_interrupt_offset, gdt_t *gdt) {
     g_idt.hardware_interrupt_offset = hardware_interrupt_offset;
-    g_idt.master_command_port = PIC1_COMMAND;
-    g_idt.master_data_port = PIC1_DATA;
-    g_idt.slave_command_port = PIC2_COMMAND;
-    g_idt.slave_data_port = PIC2_DATA;
 
 	uint32_t code_segment =  gdt_code_segment_selector(gdt);
     for (uint8_t i = 255; i > 0; --i) {
         __set_idt_entry(i, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
+        g_idt.handlers[i] = 0;
     }
     __set_idt_entry(0, code_segment, &interrupt_ignore, 0, IDT_INTERRUPT_GATE);
+    g_idt.handlers[0] = 0;
     uint16_t offset = g_idt.hardware_interrupt_offset;
 
-#define SET_IDT_ENTRY(interrupt) \
-    __set_idt_entry(interrupt, code_segment, &handle_exception##interrupt, 0, IDT_INTERRUPT_GATE);
-#define SET_IDT_OFFSET_ENTRY(interrupt) \
+#define SET_ISR(interrupt) \
+    __set_idt_entry(interrupt, code_segment, &isr##interrupt, 0, IDT_INTERRUPT_GATE);
+#define SET_IRQ(interrupt) \
     __set_idt_entry(offset + interrupt, code_segment, &irq##interrupt, 0, IDT_INTERRUPT_GATE);
 
-//    SET_IDT_ENTRY(0x00);
-//    SET_IDT_ENTRY(0x01);
-//    SET_IDT_ENTRY(0x02);
-//    SET_IDT_ENTRY(0x03);
-//    SET_IDT_ENTRY(0x04);
-//    SET_IDT_ENTRY(0x05);
-//    SET_IDT_ENTRY(0x06);
-//    SET_IDT_ENTRY(0x07);
-//    SET_IDT_ENTRY(0x08);
-//    SET_IDT_ENTRY(0x09);
-//    SET_IDT_ENTRY(0x0A);
-//    SET_IDT_ENTRY(0x0B);
-//    SET_IDT_ENTRY(0x0C);
-//    SET_IDT_ENTRY(0x0D);
-//    SET_IDT_ENTRY(0x0E);
-//    SET_IDT_ENTRY(0x0F);
-//    SET_IDT_ENTRY(0x10);
-//    SET_IDT_ENTRY(0x11);
-//    SET_IDT_ENTRY(0x12);
-//    SET_IDT_ENTRY(0x13);
+    SET_ISR(0x00);
+    SET_ISR(0x01);
+    SET_ISR(0x02);
+    SET_ISR(0x03);
+    SET_ISR(0x04);
+    SET_ISR(0x05);
+    SET_ISR(0x06);
+    SET_ISR(0x07);
+    SET_ISR(0x08);
+    SET_ISR(0x09);
+    SET_ISR(0x0A);
+    SET_ISR(0x0B);
+    SET_ISR(0x0C);
+    SET_ISR(0x0D);
+    SET_ISR(0x0E);
+    SET_ISR(0x0F);
+    SET_ISR(0x10);
+    SET_ISR(0x11);
+    SET_ISR(0x12);
+    SET_ISR(0x13);
 
-    SET_IDT_OFFSET_ENTRY(0x00);
-    SET_IDT_OFFSET_ENTRY(0x01);
-    SET_IDT_OFFSET_ENTRY(0x02);
-    SET_IDT_OFFSET_ENTRY(0x03);
-    SET_IDT_OFFSET_ENTRY(0x04);
-    SET_IDT_OFFSET_ENTRY(0x05);
-    SET_IDT_OFFSET_ENTRY(0x06);
-    SET_IDT_OFFSET_ENTRY(0x07);
-    SET_IDT_OFFSET_ENTRY(0x08);
-    SET_IDT_OFFSET_ENTRY(0x09);
-    SET_IDT_OFFSET_ENTRY(0x0A);
-    SET_IDT_OFFSET_ENTRY(0x0B);
-    SET_IDT_OFFSET_ENTRY(0x0C);
-    SET_IDT_OFFSET_ENTRY(0x0D);
-    SET_IDT_OFFSET_ENTRY(0x0E);
-    SET_IDT_OFFSET_ENTRY(0x0F);
+    SET_IRQ(0x00);
+    SET_IRQ(0x01);
+    SET_IRQ(0x02);
+    SET_IRQ(0x03);
+    SET_IRQ(0x04);
+    SET_IRQ(0x05);
+    SET_IRQ(0x06);
+    SET_IRQ(0x07);
+    SET_IRQ(0x08);
+    SET_IRQ(0x09);
+    SET_IRQ(0x0A);
+    SET_IRQ(0x0B);
+    SET_IRQ(0x0C);
+    SET_IRQ(0x0D);
+    SET_IRQ(0x0E);
+    SET_IRQ(0x0F);
     __set_idt_entry(0x80, code_segment, &irq0x80, 0, IDT_INTERRUPT_GATE);
-#undef SET_IDT_ENTRY
-#undef SET_IDT_OFFSET_ENTRY
+#undef SET_ISR
+#undef SET_IRQ
 
     /* remapping the PIC */
-    port_write8_slow(g_idt.master_command_port, 0x11);
-    port_write8_slow(g_idt.slave_command_port, 0x11);
-//
-    port_write8_slow(g_idt.master_data_port, offset);
-    port_write8_slow(g_idt.slave_data_port, offset + 8);
+    port_write8_slow(PIC1_COMMAND, 0x11);
+    port_write8_slow(PIC2_COMMAND, 0x11);
 
-    port_write8_slow(g_idt.master_data_port, 0x04);
-    port_write8_slow(g_idt.slave_data_port, 0x02);
+    port_write8_slow(PIC1_DATA, offset);
+    port_write8_slow(PIC2_DATA, offset + 8);
 
-    port_write8_slow(g_idt.master_data_port, 0x01);
-    port_write8_slow(g_idt.slave_data_port, 0x01);
+    port_write8_slow(PIC1_DATA, 0x04);
+    port_write8_slow(PIC2_DATA, 0x02);
 
-    port_write8_slow(g_idt.master_data_port, 0x00);
-    port_write8_slow(g_idt.slave_data_port, 0x00);
+    port_write8_slow(PIC1_DATA, 0x01);
+    port_write8_slow(PIC2_DATA, 0x01);
+
+    port_write8_slow(PIC1_DATA, 0x00);
+    port_write8_slow(PIC2_DATA, 0x00);
 
     idt_pointer_t idt_pointer;
-    idt_pointer.size  = 256*sizeof(idt_descr_t) - 1;
+    idt_pointer.size  = 256 * sizeof(idt_descr_t) - 1;
     idt_pointer.base  = (uint32_t)g_idt.idts;
     __asm__ volatile("lidt %0" : : "m" (idt_pointer));
     printf("idt_init\n");

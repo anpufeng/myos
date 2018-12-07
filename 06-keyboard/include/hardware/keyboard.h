@@ -4,6 +4,6 @@
 #include <types.h>
 #include <hardware/idt.h>
 
-void keyboard_init(idt_t *idt);
+void keyboard_init();
 
 #endif 

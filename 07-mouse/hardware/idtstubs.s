@@ -7,9 +7,9 @@
 .extern idt_handle
 
 
-.macro handle_exception_macro num
-.global handle_exception\num\()
-handle_exception\num\():
+.macro isr_macro num
+.global isr\num\()
+isr\num\():
     movb $\num, (interruptnumber)
     jmp int_bottom
 .endm
@@ -24,26 +24,26 @@ irq\num\():
 .endm
 
 
-handle_exception_macro 0x00
-handle_exception_macro 0x01
-handle_exception_macro 0x02
-handle_exception_macro 0x03
-handle_exception_macro 0x04
-handle_exception_macro 0x05
-handle_exception_macro 0x06
-handle_exception_macro 0x07
-handle_exception_macro 0x08
-handle_exception_macro 0x09
-handle_exception_macro 0x0A
-handle_exception_macro 0x0B
-handle_exception_macro 0x0C
-handle_exception_macro 0x0D
-handle_exception_macro 0x0E
-handle_exception_macro 0x0F
-handle_exception_macro 0x10
-handle_exception_macro 0x11
-handle_exception_macro 0x12
-handle_exception_macro 0x13
+isr_macro 0x00
+isr_macro 0x01
+isr_macro 0x02
+isr_macro 0x03
+isr_macro 0x04
+isr_macro 0x05
+isr_macro 0x06
+isr_macro 0x07
+isr_macro 0x08
+isr_macro 0x09
+isr_macro 0x0A
+isr_macro 0x0B
+isr_macro 0x0C
+isr_macro 0x0D
+isr_macro 0x0E
+isr_macro 0x0F
+isr_macro 0x10
+isr_macro 0x11
+isr_macro 0x12
+isr_macro 0x13
 
 irq_macro 0x00
 irq_macro 0x01

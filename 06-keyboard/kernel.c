@@ -20,12 +20,9 @@ void kernel_main(void) {
 
     gdt_init();
     idt_init(0x20, &g_gdt);
-    keyboard_init(&g_idt);
+    keyboard_init();
     idt_active();
 
     while (1);
-
-    idt_deinit();
-    gdt_deinit();
 
 }

@@ -4,6 +4,6 @@
 #include <types.h>
 #include <hardware/idt.h>
 
-void mouse_init(idt_t *idt);
+void mouse_init();
 
 #endif 

@@ -64,7 +64,7 @@ static uint32_t __mouse_handler_callback(uint32_t esp, interrupt_handler_t *arg)
 static interrupt_handler_t g_mouse_handler;
 
 
-void mouse_init(idt_t *idt) {
+void mouse_init() {
     uint16_t* VideoMemory = (uint16_t*)0xb8000;
     offset = 0;
     buttons = 0;
@@ -77,7 +77,6 @@ void mouse_init(idt_t *idt) {
 
     g_mouse_handler.interrutpt_number = 0x2C;
     g_mouse_handler.cb_handler = __mouse_handler_callback;
-    g_mouse_handler.interrupt_manager = idt;
     idt_register_handler(&g_mouse_handler);
 
     port_write8(MOUSE_COMMAND_PORT, 0xA8);
